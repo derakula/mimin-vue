@@ -1,0 +1,74 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  overflow-y: auto;
+}
+
+.z-index-99 {
+  z-index: 99;
+}
+
+.bg-color-white {
+  background-color: #fff !important;
+}
+
+.font-size-14 {
+  font-size: 14px !important;
+}
+
+.font-size-18 {
+  font-size: 18px !important;
+}
+
+.font-size-20 {
+  font-size: 20px !important;
+}
+
+.hover-pointer:hover {
+  cursor: pointer !important;
+}
+::-webkit-scrollbar {
+  width: 4px;
+  background-color: #f1f1f1;
+  border-radius: 0.6px;
+  height: 4px;
+}
+::-webkit-scrollbar-thumb {
+  width: 4px;
+  height: 60px;
+  background-color: #ccc;
+  border-radius: 2px;
+}
+
+input {
+  background: none !important;
+  outline: none !important;
+  border: none !important;
+}
+
+input[type="text"]:focus {
+  background: none !important;
+}
+
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  background-color: transparent;
+  transition: background-color 50000s ease-in-out 0s;
+}
+
+input {
+  background-color: transparent;
+}
+
+.height-100pc {
+  height: 100% !important;
+}
+
+.width-100pc {
+  width: 100% !important;
+}
