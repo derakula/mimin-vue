@@ -58,13 +58,10 @@ import { required, email } from "vuelidate/lib/validators";
 export default {
   mixins: [validationMixin],
   data: () => ({
-    loading: false,
     logoSrc: require("../../assets/text.png"),
     model: {
-      loginId: "",
-      mode: "password",
+      email: "",
       password: "",
-      captcha: "",
     },
   }),
   validations: {
@@ -87,6 +84,29 @@ export default {
       !this.$v.model.password.required && errors.push("Password is required");
       return errors;
     },
+    user() {
+      return this.$store.getters.user;
+    },
+    error() {
+      return this.$store.getters.error;
+    },
+    loading() {
+      return this.$store.getters.loading;
+    },
+  },
+  watch: {
+    user(value) {
+      if (value !== null && value !== undefined) {
+        this.$router.push("/dashboard");
+      }
+    },
+    error(err) {
+      if (err !== null) {
+        this.$toast.error(err.message, {
+          position: "top-center",
+        });
+      }
+    },
   },
   methods: {
     handleResize() {
@@ -96,18 +116,16 @@ export default {
       this.$v.$touch();
 
       if (!this.$v.$invalid) {
-        this.loading = true;
         this.$store
-          .dispatch("user/emailLogin", this.model)
+          .dispatch("signUserIn", {
+            email: this.model.email,
+            password: this.model.password,
+          })
           .then(() => {
-            this.$router.push("/dashboard");
+            //this.$router.push("/dashboard");
           })
           .catch((err) => {
             console.warn(err);
-            this.loading = false;
-            this.$toast.error(err.message, {
-              position: "top-center",
-            });
             this.model.password = "";
           });
       }

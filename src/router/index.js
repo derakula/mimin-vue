@@ -1,21 +1,18 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
-import Start from "../view/start/index";
-import Login from "../view/login/index";
-import Layout from "../view/layout/index";
-import {createMenus, createDefaultVisitedBar, listToTree} from "../utils/app";
-import {SYSTEM_CONFIG} from "../config/app.config";
+import { createMenus, createDefaultVisitedBar, listToTree } from "../utils/app";
+import { SYSTEM_CONFIG } from "../config/app.config";
 import adminMenuConfig from "../config/admin.menu.config";
 import store from "../store";
 // import menu from "../store/modules/menu";
 
-import firebase from'firebase/app';
-import'firebase/auth';
-
-import firebaseConfig from'../config/firebase.config';
-firebase.initializeApp(firebaseConfig);
+import AuthGuard from "./auth-guard";
 
 Vue.use(VueRouter);
+
+const Start = () => import('./../view/start/index');
+const Login = () => import('./../view/login/index');
+const Layout = () => import('./../view/layout/index');
 
 /**
  * System routing
@@ -25,6 +22,7 @@ const systemRoutes = [
     path: "/",
     name: "start",
     component: Start,
+    beforeEnter: AuthGuard
   },
   {
     path: "/login",
@@ -76,7 +74,7 @@ export const constantRoutes = [
         path: "/users",
         name: "users",
         component: () => import("../components/CrudTable.vue"),
-        props: {namespace: "/rest/users" },
+        props: { namespace: "/rest/users" },
         meta: {
           text: "User Management",
           icon: "mdi-account",
@@ -92,7 +90,7 @@ export const constantRoutes = [
         path: "/roles",
         name: "roles",
         component: () => import("../components/CrudTable.vue"),
-        props: {namespace: "/rest/roles" },
+        props: { namespace: "/rest/roles" },
         meta: {
           text: "Role Management",
           icon: "mdi-account-cowboy-hat",
@@ -108,7 +106,7 @@ export const constantRoutes = [
         path: "/organs",
         name: "organs",
         component: () => import("../components/CrudTree.vue"),
-        props: {namespace: "/rest/organs" },
+        props: { namespace: "/rest/organs" },
         meta: {
           text: "Organization Management",
           icon: "mdi-file-tree-outline",
@@ -124,7 +122,7 @@ export const constantRoutes = [
         path: "/menus",
         name: "menus",
         component: () => import("../components/CrudTree.vue"),
-        props: {namespace: "/rest/menus" },
+        props: { namespace: "/rest/menus" },
         meta: {
           text: "Menu Management",
           icon: "mdi-microsoft-xbox-controller-menu",
@@ -140,7 +138,7 @@ export const constantRoutes = [
         path: "/resources",
         name: "resources",
         component: () => import("../components/CrudTable.vue"),
-        props: {namespace: "/rest/resources" },
+        props: { namespace: "/rest/resources" },
         meta: {
           text: "Resource Management",
           icon: "mdi-semantic-web",
@@ -156,7 +154,7 @@ export const constantRoutes = [
         path: "/scopes",
         name: "scopes",
         component: () => import("../view/system/DataScopes.vue"),
-        props: {namespace: "/rest/scopes" },
+        props: { namespace: "/rest/scopes" },
         meta: {
           text: "Data Range Management",
           icon: "mdi-account-arrow-left",
@@ -172,7 +170,7 @@ export const constantRoutes = [
         path: "/auth",
         name: "auth",
         component: () => import("../view/system/Authority.vue"),
-        props: {namespace: "/rest/auth" },
+        props: { namespace: "/rest/auth" },
         meta: {
           text: "Permission Management",
           icon: "mdi-shield-account-outline",
@@ -184,70 +182,37 @@ export const constantRoutes = [
 
 const router = new VueRouter({
   routes: [...systemRoutes],
+  mode: 'history'
 });
 
-
-
-firebase.auth().onIdTokenChanged(user => {
-  console.log('onIdTokenChanged', user);
-  let idToken = null;
-  if (user != null)
-    idToken = user.ya;
-  store.dispatch("user/setToken", idToken);
-});
-
-firebase.auth().onAuthStateChanged(user => {
-  console.log('onAuthStateChanged', user)
-  if (user == null) {
-    store.dispatch("user/setAuthenticated", false);
-  } else {
-    store.dispatch("user/setAuthenticated", true);
+/*
+router.beforeEach((to, from, next) => {
+  if (
+    store.state.user.token ||
+    SYSTEM_CONFIG.permitUrls.some((i) => i === to.path)
+  ) {
+    if (store.state.user.token && !store.state.user.userOnlineInfo) {
+      store
+        .dispatch("user/getCurrent").then(() => {
+          addRouters();
+          next({ ...to, replace: true });
+        })
+        .catch(() => {
+          router.replace("/login");
+        });
+    } else {
+      // addRouters();
+      next();
+    }
+  } else if (to.path != '/login') {
+    router.replace("/login");
   }
 });
-
-router.beforeEach((to, from, next) => {
-/* console.log('router.beforeEach', to);
-  if (store.state.user.isAuthenticated ||
-    SYSTEM_CONFIG.permitUrls.some((i) => i === to.path)) {
-
-    if (store.state.user.isAuthenticated) {
-      addRouters();
-      next({ ...to, replace: true });
-    } else {
-      router.replace("/login");
-    }
-
-  } else if (to.path =='/login') {
-    next();
-  } else {
-    router.replace("/login");
-  }*/
-
-    if (
-      store.state.user.token ||
-      SYSTEM_CONFIG.permitUrls.some((i) => i === to.path)
-    ) {
-      if (store.state.user.token && !store.state.user.userOnlineInfo) {
-        store
-          .dispatch("user/getCurrent").then(() => {
-            addRouters();
-            next({ ...to, replace: true });
-          })
-          .catch(() => {
-            router.replace("/login");
-          });
-      } else {
-        // addRouters();
-        next();
-      }
-    } else if (to.path !='/login') {
-      router.replace("/login");
-    }
-});
-
+*/
 
 
 // store.state.menu.menus = createMenus(constantRoutes);
+/*
 const addRouters = () => {
   console.log('adminMenuConfig', adminMenuConfig)
   const menus = adminMenuConfig.menus;
@@ -268,7 +233,7 @@ const addRouters = () => {
             path: menu.path || "",
             name: menu.resourceName,
             component: loadComponent(menu.component),
-            props: {namespace: menu.path },
+            props: { namespace: menu.path },
             meta: {
               id: menu.resourceId,
               parentId: menu.parentId,
@@ -289,6 +254,7 @@ const addRouters = () => {
   store.state.menu.menus = createMenus(menuTree);
   store.state.menu.inited = true;
 };
+*/
 
 const loadComponent = (component) => {
   return (resolve) => require([`@/${component}`], resolve);

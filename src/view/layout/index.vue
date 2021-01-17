@@ -43,12 +43,8 @@
             <v-avatar
               color="#b9cdef"
               size="32"
-              :style="{ 'background-image': defaultAvatar }"
             >
               <img v-if="userAvatar" :src="userAvatar" alt="" />
-              <span v-else class="white--text text-h6">
-                {{ currentUser }}
-              </span>
             </v-avatar>
           </v-btn>
         </template>
@@ -83,7 +79,6 @@
 </template>
 
 <script>
-import GeoPattern from "geopattern";
 import Navigation from "./components/Navigation";
 import VisitedBar from "./components/VisitedBar";
 import { SYSTEM_CONFIG as config } from "../../config/app.config";
@@ -112,11 +107,13 @@ export default {
     ],
   }),
   mounted() {
-    this.$toast.info(`Welcome back, ${this.$store.state.user.name}`, {
-      icon: {
-        iconClass: "v-icon notranslate mdi mdi-emoticon-kiss-outline",
-      },
-    });
+    if (this.currentUser.name) {
+      this.$toast.info(`Welcome back, ${this.currentUser.name}`, {
+        icon: {
+          iconClass: "v-icon notranslate mdi mdi-emoticon-kiss-outline",
+        },
+      });
+    }
   },
   computed: {
     toggleNavIcon() {
@@ -125,11 +122,7 @@ export default {
         : "mdi-format-indent-decrease";
     },
     currentUser() {
-      let username = this.$store.state.user.name;
-      if (username && username.length > 1) {
-        username = username.substring(0, 1);
-      }
-      return username;
+      return this.$store.getters.user;
     },
     routerKey() {
       return this.$route.meta.id;
@@ -138,15 +131,8 @@ export default {
       return createBreadCrumbs(this.$route);
     },
     userAvatar() {
-      const userInfo = this.$store.state.user.userOnlineInfo;
-      return userInfo.avatar;
-    },
-    defaultAvatar() {
-      const userInfo = this.$store.state.user.userOnlineInfo;
-      return GeoPattern.generate(
-        String(userInfo ? 1 : userInfo.user_id),
-        {}
-      ).toDataUrl();
+      const userInfo = this.$store.getters.user;
+      return userInfo.picture;
     },
   },
   methods: {
@@ -159,12 +145,11 @@ export default {
     },
     logout() {
       this.$store
-        .dispatch("user/logout")
+        .dispatch("logout")
         .then(() => {
-          //this.$router.push("/login");
+          this.$router.push("/login");
         })
         .catch((err) => {
-          //this.refreshCaptcha();
           this.$toast.error(err.message, {
             position: "top-right",
           });

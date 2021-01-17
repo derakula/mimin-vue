@@ -273,7 +273,7 @@ export default {
   },
   methods: {
     initBaseInfo() {
-      this.userInfo = this.$store.state.user.userOnlineInfo;
+      this.userInfo = this.$store.getters.user;
       this.usercard = GeoPattern.generate(
         String(this.userInfo.user_id),
         {}
@@ -282,23 +282,17 @@ export default {
 
       this.cardlines = [
         {
+          icon: "mdi-card",
+          text: this.userInfo.name,
+        },
+        {
           icon: "mdi-email",
           text: this.userInfo.email,
         },
         {
-          icon: "mdi-cellphone",
-          text: this.userInfo.mobile,
-        },
-        {
-          icon: "mdi-account-multiple",
-          text: this.userInfo.organizations
-            ? this.userInfo.organizations.map((item) => item.organName)
-            : "No",
-        },
-        {
           icon: "mdi-account-tie-outline",
-          text: this.userInfo.admin
-            ? "Super Administrator"
+          text: this.userInfo.user_role == 1
+            ? "Administrator"
             : this.userInfo.roles
             ? this.userInfo.roles.map((item) => item.roleName)
             : "no",

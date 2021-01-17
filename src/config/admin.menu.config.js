@@ -24,7 +24,7 @@ export default {
             icon: 'mdi-account',
             type: 0,
             parentId: '1264742816068694018',
-            path: '/admin/users',
+            path: '/admin/user/list',
             operation: null,
             resourceCode: null,
             id: '1264847011765583874',
