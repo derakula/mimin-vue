@@ -42,7 +42,7 @@ new Vue({
             this.$store.dispatch('autoSignIn', claims)
           }
         });
-      }else{
+      } else {
         this.$store.dispatch('logout')
       }
     })
