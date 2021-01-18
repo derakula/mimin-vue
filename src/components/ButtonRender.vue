@@ -60,17 +60,20 @@
 </template>
 
 <script>
-  export default {
-    name: "ButtonGroup",
-    props: {
-      buttons: Array,
+export default {
+  name: "ButtonGroup",
+  data: () => ({
+    dialog: false,
+  }),
+  props: {
+    buttons: Array,
+  },
+  methods: {
+    buttonClick(button) {
+      this.$emit("buttonClick", button.action, null, button);
     },
-    methods: {
-      buttonClick(button) {
-        this.$emit("buttonClick", button.action,null,button);
-      },
-    },
-  };
+  },
+};
 </script>
 
 <style></style>

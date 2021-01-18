@@ -185,6 +185,10 @@ const router = new VueRouter({
   mode: 'history'
 });
 
+
+store.state.menu.menus = createMenus(constantRoutes);
+store.state.menu.inited = true;
+
 /*
 router.beforeEach((to, from, next) => {
   if (
@@ -209,15 +213,16 @@ router.beforeEach((to, from, next) => {
   }
 });
 */
-
-
-// store.state.menu.menus = createMenus(constantRoutes);
 /*
+router.beforeEach((to, from, next) => {
+  addRouters();
+});
+*/
+// store.state.menu.menus = createMenus(constantRoutes);
+
 const addRouters = () => {
   console.log('adminMenuConfig', adminMenuConfig)
   const menus = adminMenuConfig.menus;
-  let menuTree = [];
-  listToTree(menus, menuTree, undefined);
 
   const routers = menus
     .filter((menu) => menu.path)
@@ -248,13 +253,15 @@ const addRouters = () => {
 
   router.addRoutes(routers);
 
+  let menuTree = [];
+  listToTree(menus, menuTree, undefined);
   if (menuTree.length === 0) {
     menuTree = menus;
   }
   store.state.menu.menus = createMenus(menuTree);
   store.state.menu.inited = true;
 };
-*/
+
 
 const loadComponent = (component) => {
   return (resolve) => require([`@/${component}`], resolve);

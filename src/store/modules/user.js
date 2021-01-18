@@ -119,7 +119,9 @@ export default {
         )
     },
     autoSignIn({ commit }, payload) {
-      commit('setUser', payload)
+      console.log( 'payload', payload );
+      console.log( 'this.state.user', this.getters.user );
+      commit('setUser', {...this.getters.user, ...payload})
     },
     resetPasswordWithEmail({ commit }, payload) {
       const { email } = payload

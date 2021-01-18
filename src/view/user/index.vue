@@ -1,7 +1,7 @@
 <template>
   <div class="py-2 px-2 height-100pc user-center" elevation="1">
-    <v-row no-gutters justify="space-between">
-      <v-col class="mr-3" md="3">
+    <v-row justify="space-between">
+      <v-col md="3">
         <v-card shaped>
           <v-img
             :style="{ 'background-image': usercard }"
@@ -17,7 +17,7 @@
               <v-icon v-else size="190" color="#fff">mdi-account-circle</v-icon>
             </div>
             <div class="my-2 text-center font-weight-bold">
-              {{ userInfo.username }}
+              {{ userInfo.displayName }}
             </div>
           </v-img>
 
@@ -33,8 +33,7 @@
           </v-card-text>
         </v-card>
       </v-col>
-
-      <v-col class="ml-3">
+      <v-col>
         <v-card>
           <v-tabs>
             <v-tab>My Activity</v-tab>
@@ -51,9 +50,7 @@
                     small
                   >
                     <template v-slot:icon> </template>
-                    <span slot="opposite">{{
-                      log.createTime
-                    }}</span>
+                    <span slot="opposite">{{ log.createTime }}</span>
                     <v-card class="elevation-2">
                       <v-card-title class="headline">{{
                         log.resourceName || log.url
@@ -75,29 +72,9 @@
                         <v-row>
                           <v-col md="12">
                             <v-text-field
-                              label="Username"
-                              :rules="profileRules.username"
-                              v-model="profileForm.username"
-                              clearable
-                            />
-                          </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col md="12">
-                            <v-text-field
-                              label="Mobile phone number"
-                              :rules="profileRules.mobile"
-                              v-model="profileForm.mobile"
-                              clearable
-                            />
-                          </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col md="12">
-                            <v-text-field
-                              label="Mailbox"
-                              :rules="profileRules.email"
-                              v-model="profileForm.email"
+                              label="Display Name"
+                              :rules="profileRules.displayName"
+                              v-model="profileForm.displayName"
                               clearable
                             />
                           </v-col>
@@ -141,7 +118,11 @@
 
             <!-- Change password -->
             <v-tab-item>
-              <v-card flat class="pa-3">
+              <v-card
+                flat
+                class="pa-3"
+                v-if="userInfo.firebase.sign_in_provider == 'password'"
+              >
                 <v-row justify="center" align="center">
                   <v-col md="6">
                     <v-form ref="passwordForm">
@@ -200,6 +181,10 @@
                   </v-col>
                 </v-row>
               </v-card>
+              <v-card flat class="pa-3" v-else>
+                <p class="text-center">You're logged in using {{ userInfo.firebase.sign_in_provider }} </p>
+                <p class="text-center">To be able to change your password you must use your email and password at login.</p>
+              </v-card>
             </v-tab-item>
           </v-tabs>
         </v-card>
@@ -209,7 +194,6 @@
 </template>
 
 <script>
-import GeoPattern from "geopattern";
 import {
   getAccessLogsByUserId,
   saveUserProfile,
@@ -217,6 +201,9 @@ import {
 } from "@/api/user";
 import AvatarUpload from "@/components/AvatarUpload";
 import { required } from "@/utils/widget";
+
+import firebase from "firebase/app";
+import "firebase/auth";
 
 export default {
   name: "UserCenter",
@@ -237,22 +224,13 @@ export default {
       accessLogs: [],
       profileForm: {
         user_id: "",
-        username: "",
+        displayName: "",
         mobile: "",
         email: "",
         avatar: "",
       },
       profileRules: {
-        username: [required("Username")],
-        mobile: [
-          required("mobile phone number"),
-          function (v) {
-            return (
-              /^1[3456789]\d{9}$/.test(v) || `Mobile phone number format error`
-            );
-          },
-        ],
-        email: [required("Email")],
+        displayName: [required("displayName")],
       },
       passwordForm: {
         oldPassword: "",
@@ -274,10 +252,7 @@ export default {
   methods: {
     initBaseInfo() {
       this.userInfo = this.$store.getters.user;
-      this.usercard = GeoPattern.generate(
-        String(this.userInfo.user_id),
-        {}
-      ).toDataUrl();
+      this.usercard = "https://source.unsplash.com/500x500/daily";
       this.resetProfile();
 
       this.cardlines = [
@@ -291,11 +266,12 @@ export default {
         },
         {
           icon: "mdi-account-tie-outline",
-          text: this.userInfo.user_role == 1
-            ? "Administrator"
-            : this.userInfo.roles
-            ? this.userInfo.roles.map((item) => item.roleName)
-            : "no",
+          text:
+            this.userInfo.user_role == 1
+              ? "Administrator"
+              : this.userInfo.roles
+              ? this.userInfo.roles.map((item) => item.roleName)
+              : "no",
         },
         {
           icon: "mdi-update",
@@ -314,12 +290,18 @@ export default {
     },
     saveProfile() {
       if (this.$refs.form.validate()) {
-        saveUserProfile(this.profileForm)
+        var user = firebase.auth().currentUser;
+
+        user
+          .updateProfile({
+            displayName: this.profileForm.displayName,
+          })
           .then(() => {
-            this.$store.dispatch("user/resetCurrent", {
-              ...this.userInfo,
-              ...this.profileForm,
+            this.$store.dispatch("autoSignIn", {
+              name: this.profileForm.displayName,
             });
+            this.initBaseInfo();
+
             this.$toast.success("Save successfully", {
               position: "top-center",
             });
@@ -328,7 +310,6 @@ export default {
             this.$toast.error(err.message, {
               position: "top-center",
             });
-            console.warn(err);
           });
       }
     },
@@ -345,10 +326,10 @@ export default {
     resetProfile() {
       this.profileForm = {
         user_id: this.userInfo.user_id,
-        username: this.userInfo.username,
+        displayName: this.userInfo.name,
         mobile: this.userInfo.mobile,
         email: this.userInfo.email,
-        avatar: this.userInfo.avatar || "",
+        avatar: this.userInfo.picture || "",
       };
     },
     checkNewPassword(passwordFormfield) {
