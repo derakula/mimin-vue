@@ -46,7 +46,7 @@
               <span class="user-accounts-alt__separator-text">Or</span>
               <span class="user-accounts-hline"></span>
             </div>
-            <div class="text-center">
+            <div class="text-center mb-5">
               <v-btn
                 :loading="loading"
                 :disabled="loading"
@@ -59,6 +59,7 @@
                 Continue with Google
               </v-btn>
             </div>
+            <div class="text-center mb-0">Need an account? <router-link to="/register">Register</router-link>!</div>
           </v-card-text>
         </v-card>
       </v-col>

@@ -4,7 +4,9 @@ import 'firebase/auth';
 const defaultUser = {
   user_id: null,
   picture: null,
-  name: null
+  name: null,
+  email_verified: null,
+  is_logged_in: false
 };
 
 export default {
@@ -39,8 +41,8 @@ export default {
       commit('clearError')
       firebase.auth().signInWithEmailAndPassword(payload.email, payload.password)
         .then(_user => {
-            commit('setLoading', false)
-          }
+          commit('setLoading', false)
+        }
         )
         .catch(
           error => {
@@ -119,9 +121,9 @@ export default {
         )
     },
     autoSignIn({ commit }, payload) {
-      console.log( 'payload', payload );
-      console.log( 'this.state.user', this.getters.user );
-      commit('setUser', {...this.getters.user, ...payload})
+      console.log('payload', payload);
+      console.log('this.state.user', this.getters.user);
+      commit('setUser', { ...this.getters.user, ...payload })
     },
     resetPasswordWithEmail({ commit }, payload) {
       const { email } = payload
@@ -141,9 +143,12 @@ export default {
           }
         )
     },
-    logout({ commit }) {
-      firebase.auth().signOut()
-      commit('setUser', defaultUser)
+    async logout({ commit }) {
+      return firebase.auth().signOut().then(() => {
+        commit('setUser', defaultUser);
+      }).catch(error => {
+        console.log(error)
+      })
     }
   },
   getters: {

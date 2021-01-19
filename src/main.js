@@ -9,6 +9,7 @@ import firebase from 'firebase/app';
 import 'firebase/auth';
 import firebaseConfig from './config/firebase.config';
 
+console.log('firebaseConfig', firebaseConfig)
 /*
 import moment from "moment";
 moment.locale("zh-cn");
@@ -35,6 +36,7 @@ new Vue({
     firebase.initializeApp(firebaseConfig)
     firebase.auth().onAuthStateChanged((user) => {
       if (user !== null) {
+        console.log('TOKEN', user.ya);
         user.getIdTokenResult().then((result) => {
           let claims = result.claims;
           console.log('claims', claims);
